@@ -1,0 +1,29 @@
+{
+  "name": "team-portfolio-management-dashboard-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srimali12345/Team-Portfolio-Management-Dashboard-Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/srimali12345/Team-Portfolio-Management-Dashboard-Backend/issues"
+  },
+  "homepage": "https://github.com/srimali12345/Team-Portfolio-Management-Dashboard-Backend#readme",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mongoose": "^8.17.0",
+    "nodemon": "^3.1.10"
+  }
+}
