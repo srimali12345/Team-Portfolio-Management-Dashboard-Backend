@@ -1,5 +1,5 @@
 
-import RegisterModel from "../models/Auth/RegisterModel.js";
+import RegisterModel from "../models/Auth/registerModel.js";
 
 export const postRegisterDetail = async (req, res) => {
   try{

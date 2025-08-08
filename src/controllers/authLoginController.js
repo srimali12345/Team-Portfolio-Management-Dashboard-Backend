@@ -1,4 +1,4 @@
-import LoginModel from "../models/Auth/LoginModel.js";
+import LoginModel from "../models/Auth/authLoginModel";
 
 export const postLoginDetail = async (req, res) => {
   try {
