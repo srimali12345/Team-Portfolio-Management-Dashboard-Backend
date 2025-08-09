@@ -17,7 +17,7 @@ connectDB().then(() => {
   });
 });
 
-app.use(express.json());
+
 
 app.use(
   cors({
@@ -26,6 +26,8 @@ app.use(
     optionSuccessStatus: 200,
   })
 );
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", AuthLoginRoutes);
 app.use("/api",AuthRegisterRoutes )

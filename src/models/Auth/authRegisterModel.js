@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
 const RegisterSchema = new mongoose.Schema({
   name: {
@@ -20,6 +20,14 @@ const RegisterSchema = new mongoose.Schema({
     type: String,
     required:true,
   },
+
+  role: {
+    type: String,
+    enum: ["admin", "viewer"],
+    default: "user",
+  },
+}, {
+  timestamps: true,
 });
 
 const RegisterModel = mongoose.model("RegisterModel", RegisterSchema);
