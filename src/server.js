@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import AuthLoginRoutes from "./routes/authLoginRoutes.js";
 import AuthRegisterRoutes from './routes/authRegisterRoutes.js'
-       
+import TeamRoutes from "./routes/TeamRoutes/teamRoutes.js";
 
 import { connectDB } from "./config/db.js";
 
@@ -17,8 +17,6 @@ connectDB().then(() => {
   });
 });
 
-
-
 app.use(
   cors({
     origin: "http://localhost:5174",
@@ -30,4 +28,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", AuthLoginRoutes);
-app.use("/api",AuthRegisterRoutes )
+app.use("/api",AuthRegisterRoutes)
+app.use("/api/team", TeamRoutes);
+
