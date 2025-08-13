@@ -16,6 +16,7 @@ export const addMember = async (req, res) => {
       currentProject: currentProject || null,
       skills: Array.isArray(skills) ? skills : [skills],
       status: currentProject ? "active" : "bench",
+      projectHistory: [],
     };
 
     const existingMember = await TeamMembersModel.findOne({
@@ -190,3 +191,23 @@ export const getMembersByEmail = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+export const getPortfolioByMemberId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const teamMember = await TeamMembersModel.findOne(
+      { "members._id": id },
+      { "members.$": 1 }
+    );
+
+    if (!teamMember || teamMember.members.length === 0) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
+    const memberPortfolio = teamMember.members[0];
+    res.status(200).json(memberPortfolio);
+  } catch (error) {
+    console.error("Error fetching portfolio by member ID:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

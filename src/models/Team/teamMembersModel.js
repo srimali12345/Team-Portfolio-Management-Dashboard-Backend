@@ -28,7 +28,32 @@ const teamMembersSchema = new mongoose.Schema({
         type: String,
         enum: ["active", "bench"],
         default: "active",
-      }
+      },
+      projectHistory:[
+
+        {
+          projectName: {
+            type: String,
+            required: true,
+          },
+          startDate: {
+            type: Date,
+            required: true,
+          },
+          endDate: {
+            type: Date,
+            required: false,
+          },
+          role: {
+            type: String,
+            required: true,
+          },  
+          description: {
+            type: String,
+            required: false,
+          }
+        }
+      ]
     }
     ]
 
