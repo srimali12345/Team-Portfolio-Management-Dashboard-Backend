@@ -211,3 +211,26 @@ export const getPortfolioByMemberId = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 }
+export const getMemberStats = async (req, res) => {
+  try {
+    const teamData = await TeamMembersModel.find({});
+    if (!teamData || teamData.length === 0) {
+      return res.status(404).json({ message: "No team members found" });
+    }
+
+    const members = teamData[0].members || [];
+
+    const totalMembers = members.length;
+    const activeMembers = members.filter(m => m.status === "active").length;
+    const benchMembers = members.filter(m => m.status === "bench").length;
+
+    res.status(200).json({
+      totalMembers,
+      activeMembers,
+      benchMembers
+    });
+  } catch (error) {
+    console.error("Error fetching member stats:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
