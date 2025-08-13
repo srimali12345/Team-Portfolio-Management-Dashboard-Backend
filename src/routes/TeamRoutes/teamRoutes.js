@@ -7,6 +7,7 @@ router.post('/addMember', addMember )
 router.get('/getMembers', getMembers);
 router.put('/updateMember/:id', updateMember);
 router.delete('/deleteMember/:id', deleteMember);
+router.get('/getMembers/:id', getMembers);
 
 
 export default router;

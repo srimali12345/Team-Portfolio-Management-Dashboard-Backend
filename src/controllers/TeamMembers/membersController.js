@@ -2,23 +2,30 @@ import TeamMembersModel from "../../models/Team/teamMembersModel.js";
 
 export const addMember = async (req, res) => {
   try {
-    const { name, email, role,currentProject,skills } = req.body;
-    if (!name || !email || !role || !currentProject || !skills) {
-      return res.status(400).json({ message: "All fields are required" });
+    const { name, email, role, currentProject, skills } = req.body;
+    if (!name || !email || !role || !skills) {
+      return res
+        .status(400)
+        .json({ message: "Name, email, role, and skills are required" });
     }
 
     const newMember = {
       name,
       email,
       role,
-      currentProject,
-      skills: Array.isArray(skills) ? skills : [skills], 
+      currentProject: currentProject || null,
+      skills: Array.isArray(skills) ? skills : [skills],
+      status: currentProject ? "active" : "bench",
     };
-  
-    const existingMember = await TeamMembersModel.findOne({ "members.email": email });
+
+    const existingMember = await TeamMembersModel.findOne({
+      "members.email": email,
+    });
     if (existingMember) {
-        return res.status(409).json({ message: "Member with this email already exists" });
-        }   
+      return res
+        .status(409)
+        .json({ message: "Member with this email already exists" });
+    }
 
     const teamMember = await TeamMembersModel.findOneAndUpdate(
       {},
@@ -26,12 +33,12 @@ export const addMember = async (req, res) => {
       { new: true, upsert: true }
     );
     res.status(201).json(teamMember);
-    } catch (error) {
+  } catch (error) {
     console.error("Error adding member:", error);
     res.status(500).json({ message: "Internal server error" });
-    }
-    };
-  
+  }
+};
+
 export const getMembers = async (req, res) => {
   try {
     const teamMembers = await TeamMembersModel.find({});
@@ -43,25 +50,30 @@ export const getMembers = async (req, res) => {
     console.error("Error fetching team members:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 export const updateMember = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullname, email, role, project, skills } = req.body;
+    const { name, email, role, currentProject, skills } = req.body;
+    console.log("UpdateMember req.body:", req.body);
+    const status = currentProject ? "active" : "bench";
 
-    if (!fullname || !email || !role || !project || !skills) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!name || !email || !role || !skills) {
+      return res
+        .status(400)
+        .json({ message: "All fields except currentProject are required" });
     }
 
     const updatedMember = await TeamMembersModel.findOneAndUpdate(
       { "members._id": id },
       {
         $set: {
-          "members.$.fullname": fullname,
+          "members.$.name": name,
           "members.$.email": email,
           "members.$.role": role,
-          "members.$.currentProject": currentProject,
+          "members.$.currentProject": currentProject || null,
           "members.$.skills": skills,
+          "members.$.status": status,
         },
       },
       { new: true }
@@ -76,7 +88,7 @@ export const updateMember = async (req, res) => {
     console.error("Error updating member:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const deleteMember = async (req, res) => {
   try {
@@ -102,7 +114,10 @@ export const getMemberById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const teamMember = await TeamMembersModel.findOne({ "members._id": id }, { "members.$": 1 });
+    const teamMember = await TeamMembersModel.findOne(
+      { "members._id": id },
+      { "members.$": 1 }
+    );
 
     if (!teamMember || teamMember.members.length === 0) {
       return res.status(404).json({ message: "Member not found" });
@@ -118,10 +133,15 @@ export const getMembersByProject = async (req, res) => {
   try {
     const { project } = req.params;
 
-    const teamMembers = await TeamMembersModel.find({ "members.project": project }, { "members.$": 1 });
+    const teamMembers = await TeamMembersModel.find(
+      { "members.project": project },
+      { "members.$": 1 }
+    );
 
     if (!teamMembers || teamMembers.length === 0) {
-      return res.status(404).json({ message: "No members found for this project" });
+      return res
+        .status(404)
+        .json({ message: "No members found for this project" });
     }
 
     res.status(200).json(teamMembers);
@@ -134,9 +154,14 @@ export const getMembersByRole = async (req, res) => {
   try {
     const { role } = req.params;
 
-    const teamMembers = await TeamMembersModel.find({ "members.role": role }, { "members.$": 1 });  
+    const teamMembers = await TeamMembersModel.find(
+      { "members.role": role },
+      { "members.$": 1 }
+    );
     if (!teamMembers || teamMembers.length === 0) {
-      return res.status(404).json({ message: "No members found for this role" });
+      return res
+        .status(404)
+        .json({ message: "No members found for this role" });
     }
 
     res.status(200).json(teamMembers);
@@ -149,14 +174,18 @@ export const getMembersByEmail = async (req, res) => {
   try {
     const { email } = req.params;
 
-    const teamMembers = await TeamMembersModel.find({ "members.email": email }, { "members.$": 1 });
-    
+    const teamMembers = await TeamMembersModel.find(
+      { "members.email": email },
+      { "members.$": 1 }
+    );
+
     if (!teamMembers || teamMembers.length === 0) {
-      return res.status(404).json({ message: "No members found with this email" });
-    }   
-    res.status(200).json(teamMembers);
+      return res
+        .status(404)
+        .json({ message: "No members found with this email" });
     }
-    catch (error) {
+    res.status(200).json(teamMembers);
+  } catch (error) {
     console.error("Error fetching members by email:", error);
     res.status(500).json({ message: "Internal server error" });
   }
