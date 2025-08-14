@@ -1,3 +1,4 @@
+import ProjectModel from "../../models/Projects/projectsModel.js";
 import TeamMembersModel from "../../models/Team/teamMembersModel.js";
 
 export const addMember = async (req, res) => {
@@ -42,16 +43,17 @@ export const addMember = async (req, res) => {
 
 export const getMembers = async (req, res) => {
   try {
-    const teamMembers = await TeamMembersModel.find({});
-    if (!teamMembers || teamMembers.length === 0) {
-      return res.status(404).json({ message: "No team members found" });
-    }
-    res.status(200).json(teamMembers);
-  } catch (error) {
-    console.error("Error fetching team members:", error);
+    const teamData = await TeamMembersModel.find({});
+    const allMembers = teamData.reduce((acc, team) => {
+      return acc.concat(team.members || []);
+    }, []);
+    res.status(200).json(allMembers);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export const updateMember = async (req, res) => {
   try {
     const { id } = req.params;
@@ -111,6 +113,7 @@ export const deleteMember = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export const getMemberById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -130,6 +133,7 @@ export const getMemberById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export const getMembersByProject = async (req, res) => {
   try {
     const { project } = req.params;
@@ -151,6 +155,7 @@ export const getMembersByProject = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export const getMembersByRole = async (req, res) => {
   try {
     const { role } = req.params;
@@ -171,6 +176,7 @@ export const getMembersByRole = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export const getMembersByEmail = async (req, res) => {
   try {
     const { email } = req.params;
@@ -191,26 +197,6 @@ export const getMembersByEmail = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-export const getPortfolioByMemberId = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const teamMember = await TeamMembersModel.findOne(
-      { "members._id": id },
-      { "members.$": 1 }
-    );
-
-    if (!teamMember || teamMember.members.length === 0) {
-      return res.status(404).json({ message: "Member not found" });
-    }
-
-    const memberPortfolio = teamMember.members[0];
-    res.status(200).json(memberPortfolio);
-  } catch (error) {
-    console.error("Error fetching portfolio by member ID:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-}
 export const getMemberStats = async (req, res) => {
   try {
     const teamData = await TeamMembersModel.find({});
@@ -221,16 +207,118 @@ export const getMemberStats = async (req, res) => {
     const members = teamData[0].members || [];
 
     const totalMembers = members.length;
-    const activeMembers = members.filter(m => m.status === "active").length;
-    const benchMembers = members.filter(m => m.status === "bench").length;
+    const activeMembers = members.filter((m) => m.status === "active").length;
+    const benchMembers = members.filter((m) => m.status === "bench").length;
 
     res.status(200).json({
       totalMembers,
       activeMembers,
-      benchMembers
+      benchMembers,
     });
   } catch (error) {
     console.error("Error fetching member stats:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const searchAndFilterMembers = async (req, res) => {
+  try {
+    const { search, role, project, startDate, endDate, benchOnly } = req.query;
+
+    let matchQuery = {};
+
+    if (search) {
+      matchQuery.$or = [
+        { "members.name": { $regex: search, $options: "i" } },
+        { "members.email": { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (role) {
+      matchQuery["members.role"] = role;
+    }
+
+    if (project) {
+      matchQuery["members.currentProject"] = project;
+    }
+
+    if (benchOnly === "true") {
+      matchQuery["members.status"] = "bench";
+    }
+
+    const pipeline = [{ $unwind: "$members" }, { $match: matchQuery }];
+
+    if (startDate || endDate) {
+      const dateFilter = {};
+      if (startDate) {
+        dateFilter["members.projectHistory.startDate"] = {
+          $gte: new Date(startDate),
+        };
+      }
+      if (endDate) {
+        dateFilter["members.projectHistory.endDate"] = {
+          $lte: new Date(endDate),
+        };
+      }
+      pipeline.push({ $match: dateFilter });
+    }
+
+    const results = await TeamMembersModel.aggregate(pipeline);
+    res.status(200).json(results.map((r) => r.members));
+  } catch (error) {
+    console.error("Error filtering members:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getPortfolio = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid member ID format" });
+    }
+
+    const teamMember = await TeamMembersModel.findOne(
+      { "members._id": new mongoose.Types.ObjectId(id) },
+      { "members.$": 1 }
+    ).lean();
+
+    if (!teamMember || !teamMember.members || teamMember.members.length === 0) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
+    const member = teamMember.members[0];
+
+    const projects = await ProjectModel.find({
+      "members.memberId": new mongoose.Types.ObjectId(id),
+    }).lean();
+
+    const projectHistory = projects.map((project) => {
+      const memberData = project.members.find(
+        (m) => m.memberId && m.memberId.toString() === id
+      );
+      return {
+        _id: project._id,
+        projectName: project.name,
+        role: memberData?.role || member.role || "N/A",
+        startDate: project.startDate,
+        endDate: project.endDate,
+        description: project.description || "No description",
+      };
+    });
+
+    const responseData = {
+      ...member,
+      projectHistory: projectHistory || [],
+    };
+
+    res.status(200).json(responseData);
+  } catch (err) {
+    console.error("Error in getPortfolio:", err);
+    res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
   }
 };

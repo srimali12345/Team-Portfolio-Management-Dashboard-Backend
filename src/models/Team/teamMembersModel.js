@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const teamMembersSchema = new mongoose.Schema({
- 
   members: [
     {
       name: {
@@ -16,7 +15,7 @@ const teamMembersSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      currentProject:{
+      currentProject: {
         type: String,
         required: false,
       },
@@ -24,13 +23,12 @@ const teamMembersSchema = new mongoose.Schema({
         type: [String],
         required: true,
       },
-      status:{
+      status: {
         type: String,
         enum: ["active", "bench"],
         default: "active",
       },
-      projectHistory:[
-
+      projectHistory: [
         {
           projectName: {
             type: String,
@@ -47,17 +45,16 @@ const teamMembersSchema = new mongoose.Schema({
           role: {
             type: String,
             required: true,
-          },  
+          },
           description: {
             type: String,
             required: false,
-          }
-        }
-      ]
-    }
-    ]
-
-})
+          },
+        },
+      ],
+    },
+  ],
+});
 
 const TeamMembersModel = mongoose.model("TeamMembersModel", teamMembersSchema);
 

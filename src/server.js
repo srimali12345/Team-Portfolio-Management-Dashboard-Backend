@@ -1,10 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import AuthLoginRoutes from "./routes/authLoginRoutes.js";
-import AuthRegisterRoutes from './routes/authRegisterRoutes.js'
+import AuthRoutes from "./routes/UserRoutes/userRoutes.js";
 import TeamRoutes from "./routes/TeamRoutes/teamRoutes.js";
-
+import ProjectRoutes from "./routes/ProjectRoutes/projectsRoutes.js";
 import { connectDB } from "./config/db.js";
 
 dotenv.config();
@@ -27,7 +26,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", AuthLoginRoutes);
-app.use("/api",AuthRegisterRoutes)
+app.use("/api/auth", AuthRoutes);
 app.use("/api/team", TeamRoutes);
-
+app.use("/api/projects", ProjectRoutes);
