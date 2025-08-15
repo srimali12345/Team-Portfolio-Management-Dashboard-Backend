@@ -58,7 +58,6 @@ export const updateMember = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, role, currentProject, skills } = req.body;
-    console.log("UpdateMember req.body:", req.body);
     const status = currentProject ? "active" : "bench";
 
     if (!name || !email || !role || !skills) {
@@ -271,54 +270,18 @@ export const searchAndFilterMembers = async (req, res) => {
   }
 };
 
-export const getPortfolio = async (req, res) => {
+export const getPortfolio = async (req,res)=>{
+  
   try {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid member ID format" });
-    }
-
-    const teamMember = await TeamMembersModel.findOne(
-      { "members._id": new mongoose.Types.ObjectId(id) },
-      { "members.$": 1 }
-    ).lean();
-
-    if (!teamMember || !teamMember.members || teamMember.members.length === 0) {
+    const member = await TeamMember.findById(req.params._id);
+    if (!member) {
       return res.status(404).json({ message: "Member not found" });
     }
-
-    const member = teamMember.members[0];
-
-    const projects = await ProjectModel.find({
-      "members.memberId": new mongoose.Types.ObjectId(id),
-    }).lean();
-
-    const projectHistory = projects.map((project) => {
-      const memberData = project.members.find(
-        (m) => m.memberId && m.memberId.toString() === id
-      );
-      return {
-        _id: project._id,
-        projectName: project.name,
-        role: memberData?.role || member.role || "N/A",
-        startDate: project.startDate,
-        endDate: project.endDate,
-        description: project.description || "No description",
-      };
-    });
-
-    const responseData = {
-      ...member,
-      projectHistory: projectHistory || [],
-    };
-
-    res.status(200).json(responseData);
+    res.json({ portfolio: member.projects || [] });
   } catch (err) {
-    console.error("Error in getPortfolio:", err);
-    res.status(500).json({
-      message: "Internal server error",
-      error: err.message,
-    });
+    res.status(500).json({ message: err.message });
   }
-};
+}
+
+
+

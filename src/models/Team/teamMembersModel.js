@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const projectSchema = new mongoose.Schema({
+  name: String,
+  role: String,
+  startDate: Date,
+  endDate: Date,
+});
+
+
 const teamMembersSchema = new mongoose.Schema({
   members: [
     {
@@ -28,30 +36,7 @@ const teamMembersSchema = new mongoose.Schema({
         enum: ["active", "bench"],
         default: "active",
       },
-      projectHistory: [
-        {
-          projectName: {
-            type: String,
-            required: true,
-          },
-          startDate: {
-            type: Date,
-            required: true,
-          },
-          endDate: {
-            type: Date,
-            required: false,
-          },
-          role: {
-            type: String,
-            required: true,
-          },
-          description: {
-            type: String,
-            required: false,
-          },
-        },
-      ],
+       projects: [projectSchema],
     },
   ],
 });

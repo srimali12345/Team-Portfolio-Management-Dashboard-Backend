@@ -20,4 +20,5 @@ router.get("/getMemberStats", getMemberStats);
 router.get("/searchAndFilter", searchAndFilterMembers);
 router.get("/portfolio/:id", getPortfolio);
 
+
 export default router;
